@@ -328,7 +328,7 @@ func (pctx *Abc2xml) processInfo(r *sReader) {
 	t := r.Next()
 	r.Next() // Skip ':'
 	switch t {
-	case 'X':
+	case 'X', 'C', 'Z':
 		// Ignore
 	case 'T':
 		pctx.IsAbc = true

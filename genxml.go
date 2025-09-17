@@ -138,7 +138,7 @@ func (bNote *baseNote) GenBase(noteNode *xml.Node) {
 		pitch := noteNode.CreateNode("pitch")
 		step := pitch.CreateNode("step")
 		step.Text = bNote.Step
-		if bNote.Alter != 0 {
+		if bNote.Alter != 0 || bNote.HasModifier {
 			alter := pitch.CreateNode("alter")
 			alter.Text = fmt.Sprint(bNote.Alter)
 		}
@@ -147,6 +147,15 @@ func (bNote *baseNote) GenBase(noteNode *xml.Node) {
 	}
 
 }
+
+var accidentalValues = map[int]string{
+	-2: "flat-flat",
+	-1: "flat",
+	0:  "natural",
+	1:  "sharp",
+	2:  "sharp-sharp",
+}
+
 func (bNote *baseNote) AddType(noteNode *xml.Node) {
 	voice := noteNode.CreateNode("voice")
 	voice.Text = "1"
@@ -155,6 +164,10 @@ func (bNote *baseNote) AddType(noteNode *xml.Node) {
 	typ.Text = noteTypes[bNote.IType]
 	for i := 0; i < bNote.DotCount; i++ {
 		noteNode.CreateNode("dot")
+	}
+	if mod, ok := accidentalValues[bNote.Alter]; ok && bNote.HasModifier {
+		acc := noteNode.CreateNode("accidental")
+		acc.Text = mod
 	}
 
 }

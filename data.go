@@ -119,15 +119,16 @@ const (
 )
 
 type baseNote struct {
-	Step     string
-	IsRest   bool
-	Octave   int
-	Alter    int
-	Modifier int
-	Natural  bool
-	IType    int
-	DotCount int
-	Duration int
+	Step        string
+	IsRest      bool
+	Octave      int
+	Alter       int
+	Modifier    int
+	HasModifier bool
+	Natural     bool
+	IType       int
+	DotCount    int
+	Duration    int
 }
 
 type note struct {
@@ -180,17 +181,21 @@ func (pctx *Abc2xml) computeAlter(n *baseNote) {
 		return
 	}
 	note := n.Step[0]
-	if pctx.Fifth > 0 {
+	switch {
+	case pctx.Fifth == 0:
+		// C Maj
+	case pctx.Fifth > 0:
 		for i := 0; i < pctx.Fifth; i++ {
 			if note == sharp[i] {
 				n.Alter = 1
 				break
 			}
 		}
-	} else {
+	case pctx.Fifth < 0:
 		for i := 0; i < -pctx.Fifth; i++ {
 			if note == flat[i] {
 				n.Alter = -1
+				break
 			}
 		}
 	}

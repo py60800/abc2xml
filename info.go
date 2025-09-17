@@ -328,15 +328,22 @@ func (pctx *Abc2xml) processInfo(r *sReader) {
 	t := r.Next()
 	r.Next() // Skip ':'
 	switch t {
+	case 'X':
+		// Ignore
 	case 'T':
+		pctx.IsAbc = true
 		pctx.parseTitle(r)
 	case 'R':
+		pctx.IsAbc = true
 		pctx.parseRythm(r)
 	case 'M':
+		pctx.IsAbc = true
 		pctx.parseTempo(r)
 	case 'L':
+		pctx.IsAbc = true
 		pctx.parseUnit(r)
 	case 'K':
+		pctx.IsAbc = true
 		pctx.parseKey(r)
 	case 'W':
 		pctx.parseWords(r)

@@ -142,17 +142,18 @@ func (pctx *Abc2xml) parseBar(r *sReader) {
 	}
 }
 
-func (pctx *Abc2xml) parseModifier(r *sReader) (bool, int) {
-	modifier := 0
+func (pctx *Abc2xml) parseModifier(r *sReader) (natural bool, modifier int, hasModifier bool) {
 	if r.Peek() == '=' {
 		r.Next()
-		return true, 0
+		return true, 0, true
 	}
 	if modifier = r.Eat('^'); modifier > 0 {
-		return false, modifier
+		return false, modifier, true
 	}
-	modifier = r.Eat('_')
-	return false, -modifier
+	if modifier = r.Eat('_'); modifier > 0 {
+		return false, -modifier, true
+	}
+	return false, 0, false
 }
 
 // Decoration ******************************************************************
@@ -250,7 +251,7 @@ func (pctx *Abc2xml) parseDuration(r *sReader) (duration int, itype int, dots in
 func (pctx *Abc2xml) parseBaseNote(r *sReader) *baseNote {
 	note := &baseNote{}
 	pctx.parseDecoration(r)
-	note.Natural, note.Modifier = pctx.parseModifier(r)
+	note.Natural, note.Modifier, note.HasModifier = pctx.parseModifier(r)
 	note.IsRest, note.Step, note.Octave = pctx.parseStep(r)
 
 	pctx.computeAlter(note)
@@ -480,7 +481,7 @@ loop:
 	if s, ok := chordSuffix[n]; ok {
 		kind += s
 	}
-	fmt.Printf("Chord:%v(%v)%v %v(%v)\n", string(step), alter, letters, kind, n)
+	//fmt.Printf("Chord:%v(%v)%v %v(%v)\n", string(step), alter, letters, kind, n)
 	pctx.CMeasure.Append(&tChord{
 		Root:  string(step),
 		Alter: alter,
@@ -642,7 +643,7 @@ func (pctx *Abc2xml) parseContent(str string) bool {
 			r == '[' && r1 == '|',
 			r == ':',
 			r == '[' && unicode.IsDigit(r1):
-			fmt.Println("ParseBar:", string(r), string(r1))
+			//fmt.Println("ParseBar:", string(r), string(r1))
 			pctx.parseBar(parser)
 		case r == '[':
 			pctx.parseUnisson(parser)
@@ -711,6 +712,8 @@ type Abc2xml struct {
 	warnings     []string
 	lineNumber   int
 	AbortRequest bool
+
+	IsAbc bool
 }
 
 func Abc2xmlNew() *Abc2xml {
@@ -751,6 +754,9 @@ func (pctx *Abc2xml) Run(abc string) (string, error) {
 		}
 	}
 	p.beamResolve()
+	if !pctx.IsAbc {
+		return "", fmt.Errorf("Dubious Abc")
+	}
 	xml := generateXml(p)
 
 	return xml, nil
